@@ -27,3 +27,13 @@ functions:
           path: list
           method: get
           cors: true
+
+  uploadImage:
+    handler: getSignedUpload.requestUploadURL
+    environment:
+      BUCKET: ${self:custom.bucket}
+    events:
+      - http:
+          path: upload-node
+          method: post
+          cors: true          

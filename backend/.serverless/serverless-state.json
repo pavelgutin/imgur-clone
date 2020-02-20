@@ -92,6 +92,12 @@
               "LogGroupName": "/aws/lambda/imgur-clone-backend-functions-dev-list"
             }
           },
+          "UploadImageLogGroup": {
+            "Type": "AWS::Logs::LogGroup",
+            "Properties": {
+              "LogGroupName": "/aws/lambda/imgur-clone-backend-functions-dev-uploadImage"
+            }
+          },
           "IamRoleLambdaExecution": {
             "Type": "AWS::IAM::Role",
             "Properties": {
@@ -182,7 +188,7 @@
                 "S3Bucket": {
                   "Ref": "ServerlessDeploymentBucket"
                 },
-                "S3Key": "serverless/imgur-clone-backend-functions/dev/1582170591614-2020-02-20T03:49:51.614Z/imgur-clone-backend-functions.zip"
+                "S3Key": "serverless/imgur-clone-backend-functions/dev/1582200942265-2020-02-20T12:15:42.265Z/imgur-clone-backend-functions.zip"
               },
               "FunctionName": "imgur-clone-backend-functions-dev-list",
               "Handler": "listS3Objects.list",
@@ -201,14 +207,55 @@
               "IamRoleLambdaExecution"
             ]
           },
-          "ListLambdaVersionlFjbcylJAhTw3ORZs9OcsaeStVCNUaa0JWaGgDjv1U": {
+          "ListLambdaVersionBZkYLFiPWbLbZINSEFgoEhgXrZkS5OCvAYMKueac": {
             "Type": "AWS::Lambda::Version",
             "DeletionPolicy": "Retain",
             "Properties": {
               "FunctionName": {
                 "Ref": "ListLambdaFunction"
               },
-              "CodeSha256": "sJ6TNHr/08W+xY8F03tELsrHlsDrkLKjjKr77FDkGv8="
+              "CodeSha256": "Q6rVqi57/BlcHNK6e6WOMInZSKfyayCMH8kG5xmIrA0="
+            }
+          },
+          "UploadImageLambdaFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+              "Code": {
+                "S3Bucket": {
+                  "Ref": "ServerlessDeploymentBucket"
+                },
+                "S3Key": "serverless/imgur-clone-backend-functions/dev/1582200942265-2020-02-20T12:15:42.265Z/imgur-clone-backend-functions.zip"
+              },
+              "FunctionName": "imgur-clone-backend-functions-dev-uploadImage",
+              "Handler": "getSignedUpload.requestUploadURL",
+              "MemorySize": 1024,
+              "Role": {
+                "Fn::GetAtt": [
+                  "IamRoleLambdaExecution",
+                  "Arn"
+                ]
+              },
+              "Runtime": "nodejs12.x",
+              "Timeout": 6,
+              "Environment": {
+                "Variables": {
+                  "BUCKET": "dev-pavelbgutin-imgur-clone-bucket"
+                }
+              }
+            },
+            "DependsOn": [
+              "UploadImageLogGroup",
+              "IamRoleLambdaExecution"
+            ]
+          },
+          "UploadImageLambdaVersioncZewTUMUmaPOiFRPfxbQh3r4ijma2p1LG3OLyxHuI": {
+            "Type": "AWS::Lambda::Version",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+              "FunctionName": {
+                "Ref": "UploadImageLambdaFunction"
+              },
+              "CodeSha256": "Q6rVqi57/BlcHNK6e6WOMInZSKfyayCMH8kG5xmIrA0="
             }
           },
           "ApiGatewayRestApi": {
@@ -233,6 +280,21 @@
                 ]
               },
               "PathPart": "list",
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              }
+            }
+          },
+          "ApiGatewayResourceUploadDashnode": {
+            "Type": "AWS::ApiGateway::Resource",
+            "Properties": {
+              "ParentId": {
+                "Fn::GetAtt": [
+                  "ApiGatewayRestApi",
+                  "RootResourceId"
+                ]
+              },
+              "PathPart": "upload-node",
               "RestApiId": {
                 "Ref": "ApiGatewayRestApi"
               }
@@ -283,6 +345,51 @@
               }
             }
           },
+          "ApiGatewayMethodUploadDashnodeOptions": {
+            "Type": "AWS::ApiGateway::Method",
+            "Properties": {
+              "AuthorizationType": "NONE",
+              "HttpMethod": "OPTIONS",
+              "MethodResponses": [
+                {
+                  "StatusCode": "200",
+                  "ResponseParameters": {
+                    "method.response.header.Access-Control-Allow-Origin": true,
+                    "method.response.header.Access-Control-Allow-Headers": true,
+                    "method.response.header.Access-Control-Allow-Methods": true
+                  },
+                  "ResponseModels": {}
+                }
+              ],
+              "RequestParameters": {},
+              "Integration": {
+                "Type": "MOCK",
+                "RequestTemplates": {
+                  "application/json": "{statusCode:200}"
+                },
+                "ContentHandling": "CONVERT_TO_TEXT",
+                "IntegrationResponses": [
+                  {
+                    "StatusCode": "200",
+                    "ResponseParameters": {
+                      "method.response.header.Access-Control-Allow-Origin": "'*'",
+                      "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent'",
+                      "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,POST'"
+                    },
+                    "ResponseTemplates": {
+                      "application/json": "#set($origin = $input.params(\"Origin\"))\n#if($origin == \"\") #set($origin = $input.params(\"origin\")) #end\n#if($origin.matches(\".*\")) #set($context.responseOverride.header.Access-Control-Allow-Origin = $origin) #end"
+                    }
+                  }
+                ]
+              },
+              "ResourceId": {
+                "Ref": "ApiGatewayResourceUploadDashnode"
+              },
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              }
+            }
+          },
           "ApiGatewayMethodListGet": {
             "Type": "AWS::ApiGateway::Method",
             "Properties": {
@@ -326,7 +433,50 @@
               "MethodResponses": []
             }
           },
-          "ApiGatewayDeployment1582170588187": {
+          "ApiGatewayMethodUploadDashnodePost": {
+            "Type": "AWS::ApiGateway::Method",
+            "Properties": {
+              "HttpMethod": "POST",
+              "RequestParameters": {},
+              "ResourceId": {
+                "Ref": "ApiGatewayResourceUploadDashnode"
+              },
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              },
+              "ApiKeyRequired": false,
+              "AuthorizationType": "NONE",
+              "Integration": {
+                "IntegrationHttpMethod": "POST",
+                "Type": "AWS_PROXY",
+                "Uri": {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition"
+                      },
+                      ":apigateway:",
+                      {
+                        "Ref": "AWS::Region"
+                      },
+                      ":lambda:path/2015-03-31/functions/",
+                      {
+                        "Fn::GetAtt": [
+                          "UploadImageLambdaFunction",
+                          "Arn"
+                        ]
+                      },
+                      "/invocations"
+                    ]
+                  ]
+                }
+              },
+              "MethodResponses": []
+            }
+          },
+          "ApiGatewayDeployment1582200935840": {
             "Type": "AWS::ApiGateway::Deployment",
             "Properties": {
               "RestApiId": {
@@ -336,7 +486,9 @@
             },
             "DependsOn": [
               "ApiGatewayMethodListOptions",
-              "ApiGatewayMethodListGet"
+              "ApiGatewayMethodUploadDashnodeOptions",
+              "ApiGatewayMethodListGet",
+              "ApiGatewayMethodUploadDashnodePost"
             ]
           },
           "ListLambdaPermissionApiGateway": {
@@ -345,6 +497,43 @@
               "FunctionName": {
                 "Fn::GetAtt": [
                   "ListLambdaFunction",
+                  "Arn"
+                ]
+              },
+              "Action": "lambda:InvokeFunction",
+              "Principal": "apigateway.amazonaws.com",
+              "SourceArn": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:",
+                    {
+                      "Ref": "AWS::Partition"
+                    },
+                    ":execute-api:",
+                    {
+                      "Ref": "AWS::Region"
+                    },
+                    ":",
+                    {
+                      "Ref": "AWS::AccountId"
+                    },
+                    ":",
+                    {
+                      "Ref": "ApiGatewayRestApi"
+                    },
+                    "/*/*"
+                  ]
+                ]
+              }
+            }
+          },
+          "UploadImageLambdaPermissionApiGateway": {
+            "Type": "AWS::Lambda::Permission",
+            "Properties": {
+              "FunctionName": {
+                "Fn::GetAtt": [
+                  "UploadImageLambdaFunction",
                   "Arn"
                 ]
               },
@@ -386,7 +575,13 @@
           "ListLambdaFunctionQualifiedArn": {
             "Description": "Current Lambda function version",
             "Value": {
-              "Ref": "ListLambdaVersionlFjbcylJAhTw3ORZs9OcsaeStVCNUaa0JWaGgDjv1U"
+              "Ref": "ListLambdaVersionBZkYLFiPWbLbZINSEFgoEhgXrZkS5OCvAYMKueac"
+            }
+          },
+          "UploadImageLambdaFunctionQualifiedArn": {
+            "Description": "Current Lambda function version",
+            "Value": {
+              "Ref": "UploadImageLambdaVersioncZewTUMUmaPOiFRPfxbQh3r4ijma2p1LG3OLyxHuI"
             }
           },
           "ServiceEndpoint": {
@@ -524,7 +719,48 @@
         "timeout": 6,
         "runtime": "nodejs12.x",
         "vpc": {},
-        "versionLogicalId": "ListLambdaVersionlFjbcylJAhTw3ORZs9OcsaeStVCNUaa0JWaGgDjv1U"
+        "versionLogicalId": "ListLambdaVersionBZkYLFiPWbLbZINSEFgoEhgXrZkS5OCvAYMKueac"
+      },
+      "uploadImage": {
+        "handler": "getSignedUpload.requestUploadURL",
+        "environment": {
+          "BUCKET": "dev-pavelbgutin-imgur-clone-bucket"
+        },
+        "events": [
+          {
+            "http": {
+              "path": "upload-node",
+              "method": "post",
+              "cors": {
+                "origins": [
+                  "*"
+                ],
+                "origin": "*",
+                "methods": [
+                  "OPTIONS",
+                  "POST"
+                ],
+                "headers": [
+                  "Content-Type",
+                  "X-Amz-Date",
+                  "Authorization",
+                  "X-Api-Key",
+                  "X-Amz-Security-Token",
+                  "X-Amz-User-Agent"
+                ],
+                "allowCredentials": false
+              },
+              "integration": "AWS_PROXY"
+            }
+          }
+        ],
+        "name": "imgur-clone-backend-functions-dev-uploadImage",
+        "package": {},
+        "memory": 1024,
+        "timeout": 6,
+        "runtime": "nodejs12.x",
+        "vpc": {},
+        "versionLogicalId": "UploadImageLambdaVersioncZewTUMUmaPOiFRPfxbQh3r4ijma2p1LG3OLyxHuI"
       }
     },
     "serviceFilename": "serverless.yml",
@@ -533,7 +769,7 @@
     "artifact": "E:\\Projects\\imgur-clone\\backend\\.serverless\\imgur-clone-backend-functions.zip"
   },
   "package": {
-    "artifactDirectoryName": "serverless/imgur-clone-backend-functions/dev/1582170591614-2020-02-20T03:49:51.614Z",
+    "artifactDirectoryName": "serverless/imgur-clone-backend-functions/dev/1582200942265-2020-02-20T12:15:42.265Z",
     "artifact": "imgur-clone-backend-functions.zip"
   }
 }
