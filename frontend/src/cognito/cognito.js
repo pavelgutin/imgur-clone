@@ -47,6 +47,9 @@ export default class CognitoAuth {
   // authenticate with our application
   authenticate(username, pass, cb) {
 
+    console.log(username)
+    console.log(pass)
+    console.log(config.UserPoolId)
     let authenticationData = { Username: username, Password: pass }
     let authenticationDetails = new AuthenticationDetails(authenticationData)
     let userData = { Username: username, Pool: this.userPool }
