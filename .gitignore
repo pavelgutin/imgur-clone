@@ -1,4 +1,7 @@
 backend/node_modules/
 frontend/node_modules/
 terraform/.terraform
-backeend/.serverless
+backeend/.serverless/**
+terraform/terraform.tfstate
+terraform/terraform.tfstate.backup
+.serverless

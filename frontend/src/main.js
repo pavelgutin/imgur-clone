@@ -1,11 +1,12 @@
 import Vue from 'vue'
 import App from './App.vue'
-// we import the vue router from our router/index.js file
+import cognitoAuth from './cognito'
 import router from './router'
 
 Vue.config.productionTip = false
 
 new Vue({
-  router, // we tell our vue instance to use this vue router
+  router, 
+  cognitoAuth,
   render: h => h(App),
 }).$mount('#app')

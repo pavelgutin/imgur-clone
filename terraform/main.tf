@@ -27,17 +27,17 @@ resource "aws_cognito_user_pool" "imgur_clone_pool" {
 resource "aws_cognito_user_pool_client" "client" {
   name = "imgur-app-client"
 
-  user_pool_id = "${aws_cognito_user_pool.imgur_clone_pool.id}"
+  user_pool_id = aws_cognito_user_pool.imgur_clone_pool.id
 }
 
 output "UserPoolId" {
-    value = "${aws_cognito_user_pool.imgur_clone_pool.id}"
+    value = aws_cognito_user_pool.imgur_clone_pool.id
 }
 
 output "UserPoolArn" {
-    value = "${aws_cognito_user_pool.imgur_clone_pool.arn}"
+    value = aws_cognito_user_pool.imgur_clone_pool.arn
 }
 
 output "ClientId" {
-    value = "${aws_cognito_user_pool_client.client.id}"
+    value = aws_cognito_user_pool_client.client.id
 }
